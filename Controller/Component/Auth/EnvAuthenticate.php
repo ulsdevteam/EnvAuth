@@ -32,6 +32,23 @@ App::uses('BaseAuthenticate', 'Controller/Component/Auth');
  *	);
  * ```
  *
+ * Available options include stripping a scope of the username, and forcing the
+ * username to lowercase.
+ *    FORCE_LOWERCASE is a boolean
+ *    DROP_SCOPE will take a boolean, string, or array of strings
+ *      true will remove all scopes
+ *      a string or array will remove specific matched scopes
+ * ```
+ *	public $components = array(
+ *		'Auth' => array(
+ *			'authenticate' => array('EnvAuth.Env' => array(
+ * 				'FORCE_LOWERCASE' => true,
+				'DROP_SCOPE' => $scopes
+ * 			)
+ *		)
+ *	);
+ * ```
+ *
  * You should also set `AuthComponent::$sessionKey = false;` in your AppController's
  * beforeFilter() to prevent CakePHP from sending a session cookie to the client.
  *
@@ -81,6 +98,28 @@ class EnvAuthenticate extends BaseAuthenticate {
  */
 	public function getUser(CakeRequest $request) {
 		$username = env($this->settings['VARIABLE_NAME']);
+		if (isset($this->settings['FORCE_LOWERCASE']) && $this->settings['FORCE_LOWERCASE']) {
+			$username = strtolower($username);
+		}
+		if (isset($this->settings['DROP_SCOPE'])) {
+			if ($this->settings['DROP_SCOPE'] === true) {
+				// Drop any scope
+				$username = preg_replace('/@.*$/', '', $username);
+			}
+			$scopes = array();
+			if (is_string($this->settings['DROP_SCOPE'])) {
+				$scopes[] = $this->settings['DROP_SCOPE'];
+			} elseif (is_array($this->settings['DROP_SCOPE'])) {
+				$scopes = $this->settings['DROP_SCOPE'];
+			}
+			// Drop a specific scope
+			foreach ($scopes as $scope) {
+				if (strlen($username) >= strlen($scope) + 1 && strripos($username, '@'.$scope) === strlen($username) - strlen($scope) - 1) {
+					$username = str_ireplace('@'.$scope, '', $username);
+					break;
+				}
+			}
+		}
 
 		if (!is_string($username) || $username === '') {
 			return false;
