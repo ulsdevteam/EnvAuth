@@ -21,7 +21,7 @@ App::uses('BaseAuthenticate', 'Controller/Component/Auth');
  * authenticate users against the configured userModel based on a trusted enviroment
  * variable provided by the server
  *
- * ### Using Basic auth
+ * ### Using Environmental auth
  *
  * In your controller's components array, add auth + the required settings.
  * ```
@@ -43,7 +43,7 @@ App::uses('BaseAuthenticate', 'Controller/Component/Auth');
  *		'Auth' => array(
  *			'authenticate' => array('EnvAuth.Env' => array(
  * 				'FORCE_LOWERCASE' => true,
-				'DROP_SCOPE' => $scopes
+ *				'DROP_SCOPE' => $scopes
  * 			)
  *		)
  *	);
